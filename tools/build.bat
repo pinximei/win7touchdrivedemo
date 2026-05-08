@@ -29,20 +29,6 @@ if errorlevel 1 (
   exit /b 1
 )
 
-echo [build] === vmulti reference driver (x86) ===
-msbuild "%ROOT%\vmulti\vmulti.vcxproj" /p:Configuration=Release /p:Platform=Win32 /m /v:minimal /nologo
-if errorlevel 1 (
-  echo [build] vmulti x86 build FAILED
-  exit /b 1
-)
-
-echo [build] === vmulti reference driver (x64) ===
-msbuild "%ROOT%\vmulti\vmulti.vcxproj" /p:Configuration=Release /p:Platform=x64 /m /v:minimal /nologo
-if errorlevel 1 (
-  echo [build] vmulti x64 build FAILED
-  exit /b 1
-)
-
 echo [build] === app ===
 msbuild "%ROOT%\app\app.vcxproj" /p:Configuration=Release /p:Platform=Win32 /m /v:minimal /nologo
 if errorlevel 1 (
@@ -76,21 +62,6 @@ if errorlevel 1 (
   popd
   exit /b 1
 )
-cl /nologo /EHsc /MT /O2 /W3 "%ROOT%\app\vmulticli.cpp" /Fe:vmulticli.exe /link user32.lib setupapi.lib hid.lib >nul
-if errorlevel 1 (
-  echo [build] vmulticli.exe build FAILED
-  popd
-  exit /b 1
-)
-
-REM testvmulti is the original vmulti reference test program. Verifies vmulti
-REM can dispatch WM_TOUCH using only vmulti-project code (no hidtouch deps).
-cl /nologo /MT /O2 /W3 /I"%ROOT%\vmulti" "%ROOT%\vmulti\client.c" "%ROOT%\vmulti\testvmulti.c" /Fe:testvmulti.exe /link user32.lib setupapi.lib hid.lib >nul
-if errorlevel 1 (
-  echo [build] testvmulti.exe build FAILED
-  popd
-  exit /b 1
-)
 cl /nologo /EHsc /MT /O2 /W3 "%ROOT%\app\hidcaps.cpp" /Fe:hidcaps.exe /link user32.lib setupapi.lib hid.lib >nul
 if errorlevel 1 (
   echo [build] hidcaps.exe build FAILED
@@ -115,28 +86,18 @@ echo [build] === payload ===
 if not exist "%ROOT%\payload"     mkdir "%ROOT%\payload"
 if not exist "%ROOT%\payload\x86" mkdir "%ROOT%\payload\x86"
 if not exist "%ROOT%\payload\x64" mkdir "%ROOT%\payload\x64"
-if not exist "%ROOT%\payload\x86\vmulti" mkdir "%ROOT%\payload\x86\vmulti"
-if not exist "%ROOT%\payload\x64\vmulti" mkdir "%ROOT%\payload\x64\vmulti"
 
 REM ---- x86 driver package ----
 copy /Y "%ROOT%\build\driver\Win32\hidtouch\hidtouch.sys"            "%ROOT%\payload\x86\" >nul
 copy /Y "%ROOT%\build\driver\Win32\hidtouch\hidtouch.inf"            "%ROOT%\payload\x86\" >nul
 copy /Y "%ROOT%\build\driver\Win32\hidtouch\hidtouch.cat"            "%ROOT%\payload\x86\" >nul
 copy /Y "%ROOT%\build\driver\Win32\hidtouch\WdfCoInstaller01009.dll" "%ROOT%\payload\x86\" >nul
-copy /Y "%ROOT%\build\vmulti\Win32\vmulti\vmulti.sys"                 "%ROOT%\payload\x86\vmulti\" >nul
-copy /Y "%ROOT%\build\vmulti\Win32\vmulti\vmulti.cat"                 "%ROOT%\payload\x86\vmulti\" >nul
-copy /Y "%ROOT%\build\vmulti\Win32\vmulti\vmulti.inf"                 "%ROOT%\payload\x86\vmulti\" >nul
-copy /Y "%ROOT%\build\vmulti\Win32\vmulti\WdfCoInstaller01009.dll"    "%ROOT%\payload\x86\vmulti\" >nul
 
 REM ---- x64 driver package ----
 copy /Y "%ROOT%\build\driver\x64\hidtouch\hidtouch.sys"               "%ROOT%\payload\x64\" >nul
 copy /Y "%ROOT%\build\driver\x64\hidtouch\hidtouch.inf"               "%ROOT%\payload\x64\" >nul
 copy /Y "%ROOT%\build\driver\x64\hidtouch\hidtouch.cat"               "%ROOT%\payload\x64\" >nul
 copy /Y "%ROOT%\build\driver\x64\hidtouch\WdfCoInstaller01009.dll"    "%ROOT%\payload\x64\" >nul
-copy /Y "%ROOT%\build\vmulti\x64\vmulti\vmulti.sys"                   "%ROOT%\payload\x64\vmulti\" >nul
-copy /Y "%ROOT%\build\vmulti\x64\vmulti\vmulti.cat"                   "%ROOT%\payload\x64\vmulti\" >nul
-copy /Y "%ROOT%\build\vmulti\x64\vmulti\vmulti.inf"                   "%ROOT%\payload\x64\vmulti\" >nul
-copy /Y "%ROOT%\build\vmulti\x64\vmulti\WdfCoInstaller01009.dll"      "%ROOT%\payload\x64\vmulti\" >nul
 
 REM ---- user-mode binaries (x86 build, runs on x86 and x64 Win7 via WoW64) ----
 copy /Y "%ROOT%\build\app\app.exe"        "%ROOT%\payload\" >nul
@@ -145,8 +106,6 @@ copy /Y "%ROOT%\build\app\testinj.exe"    "%ROOT%\payload\" >nul
 copy /Y "%ROOT%\build\app\gesture.exe"    "%ROOT%\payload\" >nul
 copy /Y "%ROOT%\build\app\sysprobe.exe"   "%ROOT%\payload\" >nul
 copy /Y "%ROOT%\build\app\touchsink.exe"  "%ROOT%\payload\" >nul
-copy /Y "%ROOT%\build\app\vmulticli.exe"  "%ROOT%\payload\" >nul
-copy /Y "%ROOT%\build\app\testvmulti.exe" "%ROOT%\payload\" >nul
 copy /Y "%ROOT%\build\app\hidcaps.exe"    "%ROOT%\payload\" >nul
 copy /Y "%ROOT%\build\app\injtest.exe"    "%ROOT%\payload\" >nul
 

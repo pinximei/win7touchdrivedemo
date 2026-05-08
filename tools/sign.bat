@@ -52,39 +52,5 @@ echo [sign] [x64] signing hidtouch.cat
 %SIGNTOOL% sign /v /fd sha1 /f "%CERTDIR%\HidTouchTestSigner.pfx" /ac "%CERTDIR%\HidTouchTestCA.cer" "%PAYLOAD%\x64\hidtouch.cat"
 if errorlevel 1 ( echo [sign] [x64] signtool cat FAILED & exit /b 1 )
 
-REM ============================================================
-REM x86 vmulti reference
-REM ============================================================
-if exist "%PAYLOAD%\x86\vmulti\vmulti.sys" (
-  echo [sign] [x86] signing vmulti.sys
-  %SIGNTOOL% sign /v /fd sha1 /f "%CERTDIR%\HidTouchTestSigner.pfx" /ac "%CERTDIR%\HidTouchTestCA.cer" "%PAYLOAD%\x86\vmulti\vmulti.sys"
-  if errorlevel 1 ( echo [sign] [x86] signtool vmulti sys FAILED & exit /b 1 )
-
-  echo [sign] [x86] regenerating vmulti.cat
-  %INF2CAT% /driver:"%PAYLOAD%\x86\vmulti" /os:7_X86 /verbose
-  if errorlevel 1 ( echo [sign] [x86] inf2cat vmulti FAILED & exit /b 1 )
-
-  echo [sign] [x86] signing vmulti.cat
-  %SIGNTOOL% sign /v /fd sha1 /f "%CERTDIR%\HidTouchTestSigner.pfx" /ac "%CERTDIR%\HidTouchTestCA.cer" "%PAYLOAD%\x86\vmulti\vmulti.cat"
-  if errorlevel 1 ( echo [sign] [x86] signtool vmulti cat FAILED & exit /b 1 )
-)
-
-REM ============================================================
-REM x64 vmulti reference
-REM ============================================================
-if exist "%PAYLOAD%\x64\vmulti\vmulti.sys" (
-  echo [sign] [x64] signing vmulti.sys
-  %SIGNTOOL% sign /v /fd sha1 /f "%CERTDIR%\HidTouchTestSigner.pfx" /ac "%CERTDIR%\HidTouchTestCA.cer" "%PAYLOAD%\x64\vmulti\vmulti.sys"
-  if errorlevel 1 ( echo [sign] [x64] signtool vmulti sys FAILED & exit /b 1 )
-
-  echo [sign] [x64] regenerating vmulti.cat
-  %INF2CAT% /driver:"%PAYLOAD%\x64\vmulti" /os:7_X64 /verbose
-  if errorlevel 1 ( echo [sign] [x64] inf2cat vmulti FAILED & exit /b 1 )
-
-  echo [sign] [x64] signing vmulti.cat
-  %SIGNTOOL% sign /v /fd sha1 /f "%CERTDIR%\HidTouchTestSigner.pfx" /ac "%CERTDIR%\HidTouchTestCA.cer" "%PAYLOAD%\x64\vmulti\vmulti.cat"
-  if errorlevel 1 ( echo [sign] [x64] signtool vmulti cat FAILED & exit /b 1 )
-)
-
 echo [sign] OK
 exit /b 0

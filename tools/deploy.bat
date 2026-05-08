@@ -79,8 +79,6 @@ echo [deploy] pushing user-mode binaries
 "%PSCP%" -batch -pw %PASS% -hostkey %FP% "%PAYLOAD%\gesture.exe"    %HOSTUSER%:%TARGET% || exit /b 1
 "%PSCP%" -batch -pw %PASS% -hostkey %FP% "%PAYLOAD%\sysprobe.exe"   %HOSTUSER%:%TARGET% || exit /b 1
 "%PSCP%" -batch -pw %PASS% -hostkey %FP% "%PAYLOAD%\touchsink.exe"  %HOSTUSER%:%TARGET% || exit /b 1
-"%PSCP%" -batch -pw %PASS% -hostkey %FP% "%PAYLOAD%\vmulticli.exe"  %HOSTUSER%:%TARGET% || exit /b 1
-"%PSCP%" -batch -pw %PASS% -hostkey %FP% "%PAYLOAD%\testvmulti.exe" %HOSTUSER%:%TARGET% || exit /b 1
 "%PSCP%" -batch -pw %PASS% -hostkey %FP% "%PAYLOAD%\hidcaps.exe"    %HOSTUSER%:%TARGET% || exit /b 1
 
 echo [deploy] pushing CA + signer certs and helper scripts
