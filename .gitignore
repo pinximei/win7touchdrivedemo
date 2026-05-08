@@ -1,0 +1,99 @@
+# --- Build artifacts ---
+build/
+payload/
+*.obj
+*.pdb
+*.ilk
+*.exp
+*.lib
+app/*.exe
+app/*.obj
+
+# --- Driver build outputs ---
+driver/build/
+app/build/
+
+# --- Sensitive: private keys ---
+tools/cert/*.pvk
+tools/cert/*.pfx
+# Public certs are kept (so others can verify the signed driver)
+!tools/cert/*.cer
+
+# --- BSOD dumps & debug symbols ---
+*.dmp
+*.bin
+.state/dumps/
+.state/symbols/
+.state/diag_*.txt
+.state/hidcaps.txt
+
+# --- Sensitive: VM access credentials & status notes ---
+.state/VM_ACCESS.md
+.state/STATUS.md
+
+# --- AI agent / Claude internal ---
+CLAUDE.md
+.claude/
+_initial_brief.md
+
+# --- Ad-hoc diagnostic / temporary scripts at repo root ---
+_runfirst.cmd
+desktop_probe.bat
+find_browser.bat
+full_diag.bat
+probe_delayed.bat
+probe_now.bat
+test_gesture.bat
+runtouch.bat
+
+# --- Diagnostic helper scripts under tools/ (kept build/sign/deploy/setup_vm/reinstall only) ---
+tools/check_col1.ps1
+tools/cleanup_oem.ps1
+tools/deploy.bat.lf
+tools/diag2.bat
+tools/diag_chain.ps1
+tools/diag_col.bat
+tools/diag_dev.bat
+tools/diag_evts.bat
+tools/diag_hid.bat
+tools/diag_inf.bat
+tools/diag_input.bat
+tools/diag_touchstate.bat
+tools/diag_vm.bat
+tools/disp_check.ps1
+tools/enable_dbgprint.bat
+tools/enum_hid.ps1
+tools/find_touch_driver.bat
+tools/fix_certs.bat
+tools/install_vmulti.bat
+tools/nuke_phantoms.ps1
+tools/probe_hidtouch.ps1
+tools/purge_ghosts.bat
+tools/purge_phantoms.ps1
+tools/run_diag_touchstate.ps1
+tools/run_selftest.bat
+
+# --- Temporary directories ---
+tmp/
+.tmp/
+
+# --- Logs ---
+*.log
+gateway.log
+gateway.err.log
+
+# --- vmulti reference (third party, not our code) ---
+# Keep vmulti/ since it's used as INF reference, but ignore its build outputs
+vmulti/build/
+vmulti/*.obj
+vmulti/*.pdb
+
+# --- third_party clone of upstream vmulti (don't embed as nested git repo) ---
+third_party/
+
+# --- IDE / OS junk ---
+.vs/
+*.suo
+*.user
+Thumbs.db
+.DS_Store

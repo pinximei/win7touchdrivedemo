@@ -1,0 +1,81 @@
+;
+; hidtouch.inf — Virtual HID Multi-Touch Screen
+;
+[Version]
+Signature   = "$WINDOWS NT$"
+Class       = HIDClass
+ClassGuid   = {745A17A0-74D3-11D0-B6FE-00A0C90F57DA}
+Provider    = %ProviderName%
+CatalogFile = hidtouch.cat
+PnpLockdown = 1
+
+[DestinationDirs]
+DefaultDestDir = 12
+HidTouch_CoInstaller_CopyFiles = 11
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+hidtouch.sys              = 1
+WdfCoInstaller01009.dll   = 1
+
+[Manufacturer]
+%ManufacturerName% = Standard,NT$ARCH$
+
+[Standard.NT$ARCH$]
+%DeviceDesc% = HidTouch_Inst, root\hidtouch
+
+[HidTouch_Inst.NT$ARCH$]
+CopyFiles = HidTouch_CopyFiles
+
+[HidTouch_CopyFiles]
+hidtouch.sys
+
+[HidTouch_Inst.NT$ARCH$.HW]
+AddReg = HidTouch_AddReg
+
+[HidTouch_AddReg]
+; Win7+: mshidkmdf is the inbox HID-KMDF mapper UPPER filter that sits between
+; HIDClass and our KMDF driver. Per vmulti reference INF.
+HKR,,"UpperFilters",0x00010000,"mshidkmdf"
+; Tell wisptis (Tablet Input Service) this is an integrated touch device.
+; Without this, SM_DIGITIZER NID_INTEGRATED_TOUCH may flap and Pen and Touch
+; control panel hides the Touch tab — Chrome / mspaint then ignore touch input.
+HKR,,"IntegratedTouch",0x00010001,1
+; Cap reported by GetSystemMetrics(SM_MAXIMUMTOUCHES). Chrome's
+; IsTouchDevicePresent() requires this > 0 to enable touch event dispatch.
+HKR,,"MaxTouches",0x00010001,10
+
+[HidTouch_Inst.NT$ARCH$.Services]
+AddService = hidtouch, 0x00000002, HidTouch_Service
+
+[HidTouch_Service]
+DisplayName    = %ServiceDesc%
+ServiceType    = 1   ; SERVICE_KERNEL_DRIVER
+StartType      = 3   ; SERVICE_DEMAND_START
+ErrorControl   = 1   ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\hidtouch.sys
+
+[HidTouch_Inst.NT$ARCH$.CoInstallers]
+AddReg    = HidTouch_CoInstaller_AddReg
+CopyFiles = HidTouch_CoInstaller_CopyFiles
+
+[HidTouch_CoInstaller_AddReg]
+HKR,,CoInstallers32,0x00010000,"WdfCoInstaller01009.dll,WdfCoInstaller"
+
+[HidTouch_CoInstaller_CopyFiles]
+WdfCoInstaller01009.dll
+
+[HidTouch_Inst.NT$ARCH$.Wdf]
+KmdfService = hidtouch, HidTouch_wdfsect
+
+[HidTouch_wdfsect]
+KmdfLibraryVersion = 1.9
+
+[Strings]
+ProviderName     = "TouchDirve Project"
+ManufacturerName = "TouchDirve Project"
+DeviceDesc       = "Virtual HID Multi-Touch Screen"
+ServiceDesc      = "HID Touch Virtual Driver"
+DiskName         = "TouchDirve Installation Disk"

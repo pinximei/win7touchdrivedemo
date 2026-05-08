@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{6A11C3F8-7E5D-4F2C-8A7B-3D9E1A2B4C5D}</ProjectGuid>
+    <RootNamespace>hidtouch</RootNamespace>
+    <TargetVersion>Windows7</TargetVersion>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <DriverType>KMDF</DriverType>
+    <DriverTargetPlatform>Desktop</DriverTargetPlatform>
+    <KMDF_VERSION_MAJOR>1</KMDF_VERSION_MAJOR>
+    <KMDF_VERSION_MINOR>9</KMDF_VERSION_MINOR>
+    <Inf2CatWindowsVersionList Condition="'$(Platform)'=='Win32'">7_X86</Inf2CatWindowsVersionList>
+    <Inf2CatWindowsVersionList Condition="'$(Platform)'=='x64'">7_X64</Inf2CatWindowsVersionList>
+    <WindowsTargetPlatformVersion>10.0.22621.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Driver</ConfigurationType>
+    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <Driver_SpectreMitigation>false</Driver_SpectreMitigation>
+    <SpectreMitigation>false</SpectreMitigation>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Driver</ConfigurationType>
+    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <Driver_SpectreMitigation>false</Driver_SpectreMitigation>
+    <SpectreMitigation>false</SpectreMitigation>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <PropertyGroup>
+    <OutDir>$(MSBuildThisFileDirectory)..\build\driver\$(Platform)\</OutDir>
+    <IntDir>$(MSBuildThisFileDirectory)..\build\driver\$(Platform)\obj\</IntDir>
+    <TargetName>hidtouch</TargetName>
+    <SignMode>Off</SignMode>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <TreatWarningAsError>false</TreatWarningAsError>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <!-- Win7 kernel doesn't honor CFG; v143 toolchain enables /guard:cf by default.
+           Also v143 transitively pulls guardcfw.h for /guard:signret which 22621 SDK
+           doesn't ship. Force these off and provide an empty stub include path that
+           silences the implicit pull. -->
+      <ControlFlowGuard>false</ControlFlowGuard>
+      <AdditionalIncludeDirectories>$(MSBuildThisFileDirectory)stub;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>$(DDK_LIB_PATH)\hidclass.lib;$(DDK_LIB_PATH)\hidparse.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ControlFlowGuard>false</ControlFlowGuard>
+      <CETCompat>false</CETCompat>
+      <!-- Win7 kernel checks PE OS/Subsystem version. Force 6.1 (Win7). The default
+           /osversion:10.0 from v143 toolchain causes "MajorOperatingSystemVersion"
+           in PE header to be 10, which Win7 NTLDR rejects. -->
+      <SubSystem>Native</SubSystem>
+      <MinimumRequiredVersion>6.1</MinimumRequiredVersion>
+      <Version>6.1</Version>
+    </Link>
+    <Inf>
+      <SpecifyArchitecture>true</SpecifyArchitecture>
+      <SpecifyDriverVerDirectiveDate>true</SpecifyDriverVerDirectiveDate>
+      <DateStamp>04/30/2026</DateStamp>
+      <SpecifyDriverVerDirectiveVersion>true</SpecifyDriverVerDirectiveVersion>
+      <TimeStamp>1.0.0.0</TimeStamp>
+    </Inf>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Link>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+    <Inf>
+      <Architecture>x86</Architecture>
+    </Inf>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Link>
+      <TargetMachine>MachineX64</TargetMachine>
+    </Link>
+    <Inf>
+      <Architecture>amd64</Architecture>
+    </Inf>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="driver.c" />
+    <ClCompile Include="hid.c" />
+    <ClCompile Include="queue.c" />
+    <ClCompile Include="inject.c" />
+    <ClInclude Include="driver.h" />
+    <ClInclude Include="public.h" />
+    <ClInclude Include="descriptor.h" />
+    <Inf Include="hidtouch.inx" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+
+  <!-- Stage hidtouch.sys + WdfCoInstaller01009.dll into the per-driver
+       package directory before Inf2Cat runs. Also editbin the .sys to force
+       PE OSVersion/SubsystemVersion to 6.1 so Win7 NT loader accepts it. -->
+  <Target Name="StageDriverPackage"
+          AfterTargets="Link"
+          BeforeTargets="Inf2Cat">
+    <PropertyGroup>
+      <DriverPkgDir>$(OutDir)hidtouch\</DriverPkgDir>
+      <KMDFCoInstallerArchDir Condition="'$(Platform)'=='Win32'">x86</KMDFCoInstallerArchDir>
+      <KMDFCoInstallerArchDir Condition="'$(Platform)'=='x64'">x64</KMDFCoInstallerArchDir>
+      <KMDFCoInstaller>C:\Program Files (x86)\Windows Kits\8.1\Redist\wdf\$(KMDFCoInstallerArchDir)\WdfCoInstaller01009.dll</KMDFCoInstaller>
+    </PropertyGroup>
+    <Exec Command="editbin.exe /OSVERSION:6.1 /SUBSYSTEM:NATIVE,6.1 /VERSION:6.1 &quot;$(OutDir)hidtouch.sys&quot;" />
+    <MakeDir Directories="$(DriverPkgDir)" />
+    <Copy SourceFiles="$(OutDir)hidtouch.sys" DestinationFolder="$(DriverPkgDir)" SkipUnchangedFiles="false" />
+    <Copy SourceFiles="$(KMDFCoInstaller)"     DestinationFolder="$(DriverPkgDir)" SkipUnchangedFiles="true" />
+  </Target>
+</Project>
